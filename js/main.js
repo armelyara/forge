@@ -183,6 +183,9 @@ const $=id=>document.getElementById(id);
 const fmt=(x,d=2)=>(isFinite(x)?x:0).toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});
 const cssVar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const MATERIALS={steel:{name:"Acier",E:210,fadm:235,cvar:"--steel"},concrete:{name:"Béton",E:30,fadm:15,cvar:"--concrete"},wood:{name:"Bois",E:11,fadm:24,cvar:"--wood"}};
+/* Lot 0 — perf & mémoire : throttle rAF + libération GPU réelle */
+function rafThrottle(fn){let q=false;return function(){if(q)return;q=true;requestAnimationFrame(()=>{q=false;fn();});};}
+function disposeObject3D(root){if(!root)return;root.traverse(n=>{if(n.geometry)n.geometry.dispose();if(n.material){const ms=Array.isArray(n.material)?n.material:[n.material];ms.forEach(m=>{for(const k in m){const v=m[k];if(v&&v.isTexture)v.dispose();}m.dispose();});}});}
 
 /* ================= view switch ================= */
 function enterLab(){$("homeApp").classList.add("hidden");$("labwrap").classList.remove("hidden");window.scrollTo(0,0);syncLabTools();}
@@ -234,7 +237,9 @@ function barMesh(a,b,r,mat){const va=new THREE.Vector3(...a),vb=new THREE.Vector
 function dragCtl(o,handles,onMove,onHit){const cv=$("view"),ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),plane=new THREE.Plane(new THREE.Vector3(0,0,1),0),hit=new THREE.Vector3();let dg=false;const hs=()=>Array.isArray(handles)?handles:[handles];
   const sn=e=>{const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));};
   cv.addEventListener('pointerdown',e=>{sn(e);ray.setFromCamera(ndc,o.camera);const i=ray.intersectObjects(hs(),true);if(i.length){dg=true;o.controls.enabled=false;try{cv.setPointerCapture(e.pointerId);}catch(_){}onHit&&onHit(i[0]);}});
-  cv.addEventListener('pointermove',e=>{sn(e);ray.setFromCamera(ndc,o.camera);if(dg){if(ray.ray.intersectPlane(plane,hit))onMove(hit);}else{cv.style.cursor=ray.intersectObjects(hs(),true).length?'grab':'default';}});
+  const doMove=()=>{ray.setFromCamera(ndc,o.camera);if(ray.ray.intersectPlane(plane,hit))onMove(hit);};
+  const throttledMove=rafThrottle(doMove);
+  cv.addEventListener('pointermove',e=>{sn(e);if(dg){throttledMove();}else{ray.setFromCamera(ndc,o.camera);cv.style.cursor=ray.intersectObjects(hs(),true).length?'grab':'default';}});
   const end=()=>{dg=false;o.controls.enabled=true;cv.style.cursor='default';};cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);}
 function toolbar(html){$("vtoolbar").innerHTML=html;}
 function slider(id,label,min,max,step,val,unit){return `<div class="grp">${label} <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}"><span id="${id}L" class="mono">${val} ${unit||''}</span></div>`;}
@@ -646,10 +651,11 @@ const FAMILIES=[['Fondations','semelle'],['Structure','poteau','poutre','section
 
 /* ================= ATLAS — one full ouvrage in 3D ================= */
 let _atlas=null;
-function teardownAtlas(){ if(_atlas){ try{cancelAnimationFrame(_atlas.raf);_atlas.renderer.dispose();_atlas.controls.dispose();}catch(e){} _atlas=null; } }
+function teardownAtlas(){ if(_atlas){ try{cancelAnimationFrame(_atlas.raf);if(_atlas._onResize)window.removeEventListener('resize',_atlas._onResize);disposeObject3D(_atlas.scene);_atlas.renderer.dispose();_atlas.controls.dispose();}catch(e){} _atlas=null; } }
 function buildAtlas(){
   teardownAtlas();
-  const cv=$("atlasView"),w=cv.clientWidth||900,h=Math.min(600,Math.round(window.innerHeight*0.7));
+  const oldCv=$("atlasView"),cv=oldCv.cloneNode(false);cv.id="atlasView";oldCv.parentNode.replaceChild(cv,oldCv); // repart de listeners propres
+  const w=cv.clientWidth||900,h=Math.min(600,Math.round(window.innerHeight*0.7));
   const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.setSize(w,h,false);
   const scene=new THREE.Scene();const camera=new THREE.PerspectiveCamera(45,w/h,.1,500);
   const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.08;controls.maxPolarAngle=Math.PI*0.52;
@@ -683,7 +689,8 @@ function buildAtlas(){
   camera.position.set(16,12,20);controls.target.set(-1,3,0);controls.update();
   _atlas={renderer,scene,camera,controls,groups,loads,ground,allMats,raf:0};
   _atlas.loop=()=>{_atlas.raf=requestAnimationFrame(_atlas.loop);controls.update();renderer.render(scene,camera);};_atlas.loop();
-  window.addEventListener('resize',()=>{if(!_atlas)return;const w=cv.clientWidth,h=Math.min(600,Math.round(window.innerHeight*0.7));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();});
+  _atlas._onResize=()=>{if(!_atlas)return;const w=cv.clientWidth,h=Math.min(600,Math.round(window.innerHeight*0.7));renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();};
+  window.addEventListener('resize',_atlas._onResize);
   // click → etude
   const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();let dn=null;
   cv.addEventListener('pointerdown',e=>dn=[e.clientX,e.clientY]);
@@ -767,7 +774,7 @@ function actAct(a,btn){const d=DATA[curAt.id]||{};
 }
 /* ================= viz helpers ================= */
 let _viz=null;
-function teardownViz(){ if(_viz){ try{ if(_viz.raf)cancelAnimationFrame(_viz.raf); if(_viz.renderer){_viz.renderer.dispose();_viz.controls&&_viz.controls.dispose();} }catch(e){} _viz=null; } }
+function teardownViz(){ if(_viz){ try{ if(_viz.raf)cancelAnimationFrame(_viz.raf); if(_viz._onResize)window.removeEventListener('resize',_viz._onResize); disposeObject3D(_viz.scene); if(_viz.renderer){_viz.renderer.dispose();_viz.controls&&_viz.controls.dispose();} }catch(e){} _viz=null; } }
 function freshView(){const old=$("view");const nw=old.cloneNode(false);nw.id="view";old.parentNode.replaceChild(nw,old);return nw;}
 function make3D(){ const cv=freshView(),w=cv.clientWidth||760,h=440;
   const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});renderer.setPixelRatio(Math.min(2,devicePixelRatio||1));renderer.setSize(w,h,false);
@@ -776,7 +783,8 @@ function make3D(){ const cv=freshView(),w=cv.clientWidth||760,h=440;
   scene.add(new THREE.AmbientLight(0xffffff,.6));const d1=new THREE.DirectionalLight(0xffffff,.9);d1.position.set(6,10,8);scene.add(d1);const d2=new THREE.DirectionalLight(0xffffff,.3);d2.position.set(-6,4,-6);scene.add(d2);
   const gc=state.theme==='light'?0xbcc6cc:0x38434c;const grid=new THREE.GridHelper(40,40,gc,gc);grid.position.y=-3.4;grid.material.opacity=.3;grid.material.transparent=true;scene.add(grid);
   const o={renderer,scene,camera,controls,raf:0};o.loop=()=>{o.raf=requestAnimationFrame(o.loop);controls.update();renderer.render(scene,camera);};
-  window.addEventListener('resize',()=>{if(_viz!==o)return;const w=cv.clientWidth;renderer.setSize(w,440,false);camera.aspect=w/440;camera.updateProjectionMatrix();});
+  o._onResize=()=>{if(_viz!==o)return;const w=cv.clientWidth;renderer.setSize(w,440,false);camera.aspect=w/440;camera.updateProjectionMatrix();};
+  window.addEventListener('resize',o._onResize);
   return o;}
 function prep2D(){ const cv=freshView(),dpr=devicePixelRatio||1,w=cv.clientWidth||760,h=440;cv.width=w*dpr;cv.height=h*dpr;cv.style.height=h+'px';const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);return {g,w,h,cv};}
 function ro(list){return `<div class="readouts">`+list.map(r=>`<div class="ro"><div class="k">${r[0]}</div><div class="v">${r[1]} <span class="u">${r[2]||''}</span></div></div>`).join('')+`</div>`;}
