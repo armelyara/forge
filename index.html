@@ -62,11 +62,15 @@
     <div class="back" id="etudeBack">← Ateliers</div>
     <div class="e-carousel" id="elemCarousel"></div>
     <div class="e-head"><span class="e-step">Étape 2</span><h2 class="e-title">Explore-le en 3D</h2>
-      <div class="e-actions"><button data-act="anim">Animer</button><button data-act="quiz">Quiz</button><button data-act="cards">Cartes mémo</button><button data-act="cmp">Comparer</button></div></div>
+      <div class="e-actions"><button data-act="anim">Animer</button><button data-act="quiz">Quiz</button><button data-act="cards">Cartes mémo</button><button data-act="cmp">Comparer</button><button id="btnImport" type="button">Importer</button><button id="btnExport" type="button">Exporter</button><input type="file" id="fileImport" accept="application/json,.json" hidden></div></div>
     <div class="explorer">
       <div class="rail" id="rail"></div>
       <div class="viewer"><div class="vtoolbar" id="vtoolbar"></div><canvas id="view"></canvas><div class="hint" id="vhint"></div></div>
       <aside class="infopanel" id="infopanel"></aside>
+    </div>
+    <div class="diagwrap" id="diagrams" hidden>
+      <div class="diaghead"><span class="e-step">Diagrammes d'efforts</span></div>
+      <div id="diagsvg"></div>
     </div>
     <div class="e3-head"><span class="e-step">Étape 3</span><h2 class="e-title">Continuer à apprendre</h2></div>
     <div class="e3grid" id="etape3"></div>

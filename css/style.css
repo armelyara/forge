@@ -155,3 +155,19 @@
   .quizbox .qq{font-size:14.5px;margin-bottom:10px}
   .quizbox button{display:block;width:100%;text-align:left;background:var(--bg2);border:1px solid var(--line);color:var(--ink);padding:9px 12px;border-radius:6px;margin-bottom:7px;cursor:pointer;font-family:inherit;font-size:13.5px}
   .quizbox button:hover{border-color:var(--accent)}.quizbox button.ok{border-color:var(--ok);color:var(--ok)}.quizbox button.no{border-color:var(--bad);color:var(--bad)}
+
+/* ===== Lot 3 — diagrammes d'efforts ===== */
+.diagwrap{margin-top:14px;background:var(--bg2);border:1px solid var(--line2);border-radius:2px;padding:14px 16px}
+.diaghead{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+#diagsvg svg{width:100%;height:auto;display:block}
+.diag-plot .axis{stroke:var(--line);stroke-width:1}
+.diag-plot .zero{stroke:var(--faint);stroke-width:1;stroke-dasharray:3 3}
+.diag-plot .fillV{fill:color-mix(in srgb,var(--accent) 22%,transparent)}
+.diag-plot .lineV{fill:none;stroke:var(--accent);stroke-width:2}
+.diag-plot .fillM{fill:color-mix(in srgb,var(--accent2) 20%,transparent)}
+.diag-plot .lineM{fill:none;stroke:var(--accent2);stroke-width:2}
+.diag-plot .lbl{fill:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:11px}
+.diag-plot .crit{fill:var(--accent2);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500}
+.diag-plot .critline{stroke:var(--accent2);stroke-width:1;stroke-dasharray:2 3;opacity:.7}
+.diag-plot .load{stroke:var(--tension);stroke-width:1.5}
+.diag-plot .ttl{fill:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px}

@@ -300,7 +300,7 @@ AT.poutre={id:'poutre',code:'RDM',family:'Mécanique',name:'Poutre sur deux appu
   function side(){const sig=Math.abs(sol.Mmax.v)*(inputs.h/2)/inputs.I/1e6;
     let html=ro([['R_A',fmt(sol.RA/1e3,1),'kN'],['R_B',fmt(sol.RB/1e3,1),'kN'],['M max',fmt(Math.abs(sol.Mmax.v)/1e3,1),'kN·m'],['Flèche',fmt(Math.abs(sol.ymax.v)*1000,1),'mm']].concat('sigma'in ctx.summary?[['σ max',fmt(sig,0),'MPa'],['charge a',fmt(st.a,2),'m']]:[['charge a',fmt(st.a,2),'m']]));
     html+=`<div><h4>Pas à pas</h4>${stepx('Réactions','ΣF=0 · ΣM=0','R_A '+fmt(sol.RA/1e3,1)+' · R_B '+fmt(sol.RB/1e3,1)+' kN')}${stepx('Flèche','EI·y″=M(x)','y max '+fmt(Math.abs(sol.ymax.v)*1000,1)+' mm')}</div>`;
-    $("side").innerHTML=html;}
+    $("side").innerHTML=html;drawDiagramsFromViz();}
   rebuild();
  }
 };
@@ -386,7 +386,7 @@ AT.section={id:'section',code:'BA',family:'Structures',name:'Section en flexion 
   function side(Mapp,over){let html=ro([['M appliqué',fmt(Mapp,0),'kN·m'],['M résistant',fmt(S.MR||MR,0),'kN·m'],['Aciers',fmt(inputs.As,0),'mm²'],['Axe neutre x',fmt(S.x||0,0),'mm']]);
     html+=`<div class="idcard"><span class="tag" style="background:${(over?cssVar('--bad'):cssVar('--ok'))}22;color:${over?cssVar('--bad'):cssVar('--ok')}">${over?'Rupture':'OK'}</span><br><b>${over?'M appliqué > M résistant':'M appliqué ≤ M résistant'}</b><div class="desc">${over?'La section cède : ajoute des aciers ou réduis la charge.':'La section encaisse le moment appliqué.'}</div></div>`;
     html+=`<div><h4>Pas à pas</h4>${stepx('Moment résistant','M_R = As·fyd·(d−0.4x)','M_R = '+fmt(S.MR||MR,0)+' kN·m')}${stepx('Moment appliqué','M = f(P, position)','M = '+fmt(Mapp,0)+' kN·m')}</div>`;
-    $("side").innerHTML=html;}
+    $("side").innerHTML=html;drawDiagramsFromViz();}
   rebuild();
  }
 };
@@ -533,10 +533,11 @@ AT.pont={id:'pont',code:'PON',family:'Ouvrages d’art',name:'Travée de pont',s
   $("pSl").oninput=e=>{st.P=(+e.target.value)*1e3;$("pSlL").textContent=e.target.value+' kN';rebuild();};
   $("vhint").textContent='Glisse le convoi sur le tablier · lis la ligne d’influence';
   dragCtl(o,grab,hit=>{let a=(hit.x+worldL/2)/worldL*L;st.a=Math.max(0,Math.min(L,a));$("aSl").value=st.a;$("aSlL").textContent=st.a.toFixed(1)+' m';rebuild();});
-  function side(){const M=midMoment(st.a);let html=ro([['M mi-travée',fmt(M/1e3,0),'kN·m'],['M max',fmt(st.P*L/4/1e3,0),'kN·m'],['Position',fmt(st.a,1),'m'],['Convoi P',fmt(st.P/1e3,0),'kN']]);
+  function side(){const M=midMoment(st.a);o.sol=solveBeam(L,1,{a:st.a,P:st.P},null); // V/M sous le convoi courant
+    let html=ro([['M mi-travée',fmt(M/1e3,0),'kN·m'],['M max',fmt(st.P*L/4/1e3,0),'kN·m'],['Position',fmt(st.a,1),'m'],['Convoi P',fmt(st.P/1e3,0),'kN']]);
     html+=`<div><h4>Pas à pas</h4>${stepx('Ligne d’influence','ordonnée max = L/4 à mi-travée','pic quand le convoi est centré')}${stepx('Moment','M = R_A·L/2 − ...','M actuel '+fmt(M/1e3,0)+' kN·m')}</div>`;
     html+=`<div class="note">La ligne (turquoise) donne l’effet à mi-travée selon la position. La bille suit le convoi.</div>`;
-    $("side").innerHTML=html;}
+    $("side").innerHTML=html;drawDiagramsFromViz();}
   rebuild();
  }
 };
@@ -743,6 +744,7 @@ function etudeOpen(id,from){
 function runEtude(){
   const inputs=curAt.prepare(curP);const q=curAt.questions[curAt.questions.length-1];const ctx=runPipeline(curAt,[...q.tasks],inputs);
   teardownViz();document.querySelectorAll("#etude .cmaplegend").forEach(e=>e.remove());$("vtoolbar").innerHTML="";$("vhint").textContent="";
+  const dg=$("diagrams");if(dg)dg.hidden=true;   // masqué par défaut ; les ateliers poutre affichent
   curAt.result(ctx,inputs);
   if(_viz&&_viz.camera){_viz.homePos=_viz.camera.position.clone();if(_viz.controls)_viz.homeTarget=_viz.controls.target.clone();}
 }
@@ -778,5 +780,73 @@ function prep2D(){ const cv=freshView(),dpr=devicePixelRatio||1,w=cv.clientWidth
 function ro(list){return `<div class="readouts">`+list.map(r=>`<div class="ro"><div class="k">${r[0]}</div><div class="v">${r[1]} <span class="u">${r[2]||''}</span></div></div>`).join('')+`</div>`;}
 function stepx(t,f,r){return `<div class="stepx"><div class="t">${t}</div>${f?`<div class="f">${f}</div>`:''}<div class="r">${r}</div></div>`;}
 
+/* ================= Lot 3 — diagrammes d'efforts (V, M) ================= */
+// Trace V(x) et M(x) sous la poutre à partir de la solution courante (_viz.sol).
+// Convention : V positif vers le haut ; M positif tendu en bas (tracé vers le bas),
+// donc dM/dx = V et le moment est extrémal là où V s'annule.
+function renderDiagrams(sol,L){
+  const host=$("diagsvg"),wrap=$("diagrams");if(!host||!wrap)return;
+  if(!sol||!sol.xs||!sol.V||!sol.M){wrap.hidden=true;return;}
+  const W=820,ML=54,MR=16,bandH=86,gap=26,H=30+bandH+gap+bandH+18;
+  const x0=ML,x1=W-MR,plotW=x1-x0;
+  const Vmax=Math.max(1e-9,Math.abs(sol.Vmax.v)),Mmax=Math.max(1e-9,Math.abs(sol.Mmax.v));
+  const X=xi=>x0+(xi/L)*plotW;
+  const N=sol.N;
+  // bande V : zéro au centre, positif vers le haut
+  const vTop=30,vMid=vTop+bandH/2;
+  const vy=v=>vMid-(v/Vmax)*(bandH/2-6);
+  // bande M : zéro en haut, positif vers le bas (côté tendu)
+  const mTop=30+bandH+gap,mZero=mTop+8;
+  const my=m=>mZero+(m/Mmax)*(bandH-14);
+  const lineV=(()=>{let d='';for(let i=0;i<=N;i++)d+=(i?' L ':'M ')+X(sol.xs[i]).toFixed(1)+' '+vy(sol.V[i]).toFixed(1);return d;})();
+  const fillV=`M ${X(0).toFixed(1)} ${vMid} `+sol.V.map((v,i)=>`L ${X(sol.xs[i]).toFixed(1)} ${vy(v).toFixed(1)}`).join(' ')+` L ${X(L).toFixed(1)} ${vMid} Z`;
+  const lineM=(()=>{let d='';for(let i=0;i<=N;i++)d+=(i?' L ':'M ')+X(sol.xs[i]).toFixed(1)+' '+my(sol.M[i]).toFixed(1);return d;})();
+  const fillM=`M ${X(0).toFixed(1)} ${mZero} `+sol.M.map((m,i)=>`L ${X(sol.xs[i]).toFixed(1)} ${my(m).toFixed(1)}`).join(' ')+` L ${X(L).toFixed(1)} ${mZero} Z`;
+  const xCrit=X(sol.xs[sol.Mmax.i]);
+  const kNv=(v)=>fmt(v/1e3,1),kNm=(m)=>fmt(m/1e3,1);
+  const svg=`<svg class="diag-plot" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagrammes des efforts">
+    <text class="ttl" x="${x0}" y="18">Effort tranchant V (kN)</text>
+    <line class="axis" x1="${x0}" y1="${vMid}" x2="${x1}" y2="${vMid}"/>
+    <path class="fillV" d="${fillV}"/><path class="lineV" d="${lineV}"/>
+    <text class="lbl" x="${x1}" y="${vTop+10}" text-anchor="end">|V|max ${kNv(sol.Vmax.v)}</text>
+    <text class="ttl" x="${x0}" y="${mTop-2}">Moment fléchissant M (kN·m) — tendu en bas</text>
+    <line class="axis" x1="${x0}" y1="${mZero}" x2="${x1}" y2="${mZero}"/>
+    <path class="fillM" d="${fillM}"/><path class="lineM" d="${lineM}"/>
+    <line class="critline" x1="${xCrit.toFixed(1)}" y1="${vTop}" x2="${xCrit.toFixed(1)}" y2="${mTop+bandH}"/>
+    <text class="crit" x="${Math.min(xCrit+6,x1-4).toFixed(1)}" y="${mTop+bandH+14}" text-anchor="${xCrit>W-140?'end':'start'}">zone critique · |M|max ${kNm(sol.Mmax.v)} à x=${fmt(sol.xs[sol.Mmax.i],1)} m</text>
+    <text class="lbl" x="${x0}" y="${mTop+bandH+14}">0</text>
+    <text class="lbl" x="${x1}" y="${mTop+bandH+14}" text-anchor="end">${fmt(L,1)} m</text>
+  </svg>`;
+  host.innerHTML=svg;wrap.hidden=false;
+}
+function drawDiagramsFromViz(){ if(_viz&&_viz.sol&&_viz.sol.L)renderDiagrams(_viz.sol,_viz.sol.L); else {const w=$("diagrams");if(w)w.hidden=true;} }
+
+/* ================= Lot 3 — import / export des calculs ================= */
+function exportCalc(){
+  if(!curAt)return;
+  const data={app:'forge',version:1,atelier:curAt.id,params:curP,ts:new Date().toISOString()};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=`forge_${curAt.id}.json`;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  toast('Calcul exporté');
+}
+function applyImport(obj){
+  if(!obj||obj.app!=='forge'||!obj.atelier||!AT[obj.atelier]){toast('Fichier invalide');return;}
+  if(!curAt||curAt.id!==obj.atelier)etudeOpen(obj.atelier,etudeFrom);
+  const valid={};curAt.params.forEach(p=>{const v=obj.params&&obj.params[p.id];if(v!==undefined&&v!==null)valid[p.id]=(p.type==='select'?v:(isFinite(+v)?+v:undefined));});
+  curP=Object.assign(JSON.parse(JSON.stringify(curAt.cases[0].set)),valid);
+  buildParams2();runEtude();toast('Calcul importé');
+}
+function wireIO(){
+  const bi=$("btnImport"),be=$("btnExport"),fi=$("fileImport");
+  if(be)be.onclick=exportCalc;
+  if(bi&&fi){bi.onclick=()=>fi.click();
+    fi.onchange=e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const r=new FileReader();
+      r.onload=()=>{let o=null;try{o=JSON.parse(r.result);}catch(_){}applyImport(o);fi.value='';};
+      r.onerror=()=>{toast('Lecture impossible');fi.value='';};r.readAsText(f);};}
+}
+function toast(msg){let t=$("__toast");if(!t){t=document.createElement('div');t.id='__toast';t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--bg3);color:var(--ink);border:1px solid var(--line);padding:9px 16px;border-radius:20px;font-family:\'IBM Plex Mono\',monospace;font-size:12.5px;z-index:100;opacity:0;transition:opacity .2s';document.body.appendChild(t);}t.textContent=msg;t.style.opacity='1';clearTimeout(toast._t);toast._t=setTimeout(()=>{t.style.opacity='0';},1800);}
+
 /* init */
-applyTheme(); renderHome();
+applyTheme(); renderHome(); wireIO();
