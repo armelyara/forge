@@ -171,3 +171,20 @@
 .diag-plot .critline{stroke:var(--accent2);stroke-width:1;stroke-dasharray:2 3;opacity:.7}
 .diag-plot .load{stroke:var(--tension);stroke-width:1.5}
 .diag-plot .ttl{fill:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:12px}
+
+/* ===== Phase 2 — dimensionnement ===== */
+.dimwrap{margin-top:14px;background:var(--bg2);border:1px solid var(--line2);border-radius:2px;padding:14px 16px}
+#dimbody .dimrows{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:12px}
+#dimbody .dr{background:var(--bg3);border-radius:8px;padding:10px 12px}
+#dimbody .dr .k{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+#dimbody .dr .v{font-size:18px;font-variant-numeric:tabular-nums;margin-top:3px}
+#dimbody .dr .v .u{font-size:11px;color:var(--faint)}
+#dimbody .verdict{display:flex;align-items:center;gap:10px;border-radius:10px;padding:11px 14px;font-size:14px}
+#dimbody .verdict .tag{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:20px;flex:none}
+#dimbody .verdict.ok{background:color-mix(in srgb,var(--ok) 12%,transparent)}
+#dimbody .verdict.ok .tag{background:color-mix(in srgb,var(--ok) 22%,transparent);color:var(--ok)}
+#dimbody .verdict.bad{background:color-mix(in srgb,var(--bad) 12%,transparent)}
+#dimbody .verdict.bad .tag{background:color-mix(in srgb,var(--bad) 22%,transparent);color:var(--bad)}
+#dimbody .verdict.info{background:var(--bg3)}
+#dimbody .verdict.info .tag{background:var(--accent-soft);color:var(--accent)}
+#dimbody .dimnote{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);margin-top:8px}

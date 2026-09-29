@@ -235,7 +235,7 @@ function loadArrow(col,tall,rad){const m=new THREE.MeshStandardMaterial({color:n
 const AT={};
 
 /* ---------- 1. POUTRE ---------- */
-AT.poutre={id:'poutre',code:'RDM',family:'Mécanique',name:'Poutre sur deux appuis',sub:'Glisse la charge le long de la travée, règle son intensité, change le matériau. Tout recalcule en direct.',
+AT.poutre={id:'poutre',code:'RDM',family:'Poutres',name:'Poutre sur deux appuis',sub:'Glisse la charge le long de la travée, règle son intensité, change le matériau. Tout recalcule en direct.',
  manip:'glisse la charge, règle P, change le matériau',read:'déformée, M(x), contraintes',ready:true,
  stepIds:['modele','section','charge','resolution','deformee','contraintes'],
  stepLabels:{modele:'Modèle',section:'Section & matériau',charge:'Chargement',resolution:'Résolution',deformee:'Déformée',contraintes:'Contraintes'},
@@ -300,13 +300,18 @@ AT.poutre={id:'poutre',code:'RDM',family:'Mécanique',name:'Poutre sur deux appu
   function side(){const sig=Math.abs(sol.Mmax.v)*(inputs.h/2)/inputs.I/1e6;
     let html=ro([['R_A',fmt(sol.RA/1e3,1),'kN'],['R_B',fmt(sol.RB/1e3,1),'kN'],['M max',fmt(Math.abs(sol.Mmax.v)/1e3,1),'kN·m'],['Flèche',fmt(Math.abs(sol.ymax.v)*1000,1),'mm']].concat('sigma'in ctx.summary?[['σ max',fmt(sig,0),'MPa'],['charge a',fmt(st.a,2),'m']]:[['charge a',fmt(st.a,2),'m']]));
     html+=`<div><h4>Pas à pas</h4>${stepx('Réactions','ΣF=0 · ΣM=0','R_A '+fmt(sol.RA/1e3,1)+' · R_B '+fmt(sol.RB/1e3,1)+' kN')}${stepx('Flèche','EI·y″=M(x)','y max '+fmt(Math.abs(sol.ymax.v)*1000,1)+' mm')}</div>`;
-    $("side").innerHTML=html;drawDiagramsFromViz();}
+    $("side").innerHTML=html;
+    const fadm=MATERIALS[st.mat].fadm,over=sig>fadm;
+    if(_viz)_viz.dim={rows:[['σ max',fmt(sig,0),'MPa'],['σ adm',fmt(fadm,0),'MPa'],['Matériau',MATERIALS[st.mat].name,'']],
+      verdict:over?{state:'bad',tag:'Dépassé',text:'σ max > σ adm — augmente la section ou change de matériau'}:{state:'ok',tag:'Vérifié',text:'σ max ≤ σ adm — section vérifiée en flexion'},
+      note:'Dimensionnement élastique : σ = M·(h/2)/I comparée à la contrainte admissible du matériau.'};
+    syncPhases();}
   rebuild();
  }
 };
 
 /* ---------- 2. TREILLIS ---------- */
-AT.treillis={id:'treillis',code:'RDM',family:'Mécanique',name:'Treillis plan',sub:'Glisse la charge le long de la membrure basse : les barres se recolorent en direct, traction ou compression.',
+AT.treillis={id:'treillis',code:'RDM',family:'Poutres',name:'Treillis plan',sub:'Glisse la charge le long de la membrure basse : les barres se recolorent en direct, traction ou compression.',
  manip:'glisse la charge sur les nœuds, règle P',read:'effort dans chaque barre',ready:true,
  stepIds:['geometrie','chargement','equilibre','efforts'],
  stepLabels:{geometrie:'Géométrie',chargement:'Chargement',equilibre:'Équilibre',efforts:'Efforts'},
@@ -341,7 +346,12 @@ AT.treillis={id:'treillis',code:'RDM',family:'Mécanique',name:'Treillis plan',s
     let html=ro([['R_A',fmt(RA/1e3,1),'kN'],['R_B',fmt(RB/1e3,1),'kN'],['N max',fmt(Nmax/1e3,1),'kN'],['Nœud chargé',st.ni,'']]);
     html+=`<div class="idcard" id="idCard">Tape une barre pour lire son effort. Glisse la charge pour voir tout changer.</div>`;
     html+=`<div><h4>Pas à pas</h4>${stepx('Équilibre global','ΣF=0 · ΣM=0','réactions aux appuis')}${stepx('Méthode des nœuds','ΣF=0 à chaque nœud','effort de chaque barre')}</div>`;
-    $("side").innerHTML=html;}
+    $("side").innerHTML=html;
+    const ff=sol.forces||[],maxT=Math.max(0,...ff),maxC=Math.min(0,...ff);
+    if(_viz)_viz.dim={rows:[['N max traction',fmt(maxT/1e3,1),'kN'],['N max compression',fmt(Math.abs(maxC)/1e3,1),'kN'],['Barres',ff.length,'']],
+      verdict:{state:'info',tag:'Efforts',text:'Traction → section d’acier/bois suffisante ; compression → vérifier le flambement (barres à surdimensionner)'},
+      note:'Efforts issus de la statique (méthode des nœuds) → base du dimensionnement bois/métal de chaque barre.'};
+    syncPhases();}
   rebuild();
   // tap a bar to read
   const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();let dn=null;const cv=$("view");
@@ -351,7 +361,7 @@ AT.treillis={id:'treillis',code:'RDM',family:'Mécanique',name:'Treillis plan',s
 };
 
 /* ---------- 3. SECTION BA (3D beam, draggable load → moment) ---------- */
-AT.section={id:'section',code:'BA',family:'Structures',name:'Section en flexion simple',sub:'Poutre béton armé en 3D. Glisse la charge, augmente-la : compare le moment appliqué au moment résistant.',
+AT.section={id:'section',code:'BA',family:'Poutres',name:'Section en flexion simple',sub:'Poutre béton armé en 3D. Glisse la charge, augmente-la : compare le moment appliqué au moment résistant.',
  manip:'glisse la charge, règle P, varie les aciers',read:'moment appliqué vs résistant, pivot',ready:true,
  stepIds:['section','materiaux','charge','verif'],
  stepLabels:{section:'Section',materiaux:'Matériaux',charge:'Chargement',verif:'Vérification'},
@@ -386,13 +396,17 @@ AT.section={id:'section',code:'BA',family:'Structures',name:'Section en flexion 
   function side(Mapp,over){let html=ro([['M appliqué',fmt(Mapp,0),'kN·m'],['M résistant',fmt(S.MR||MR,0),'kN·m'],['Aciers',fmt(inputs.As,0),'mm²'],['Axe neutre x',fmt(S.x||0,0),'mm']]);
     html+=`<div class="idcard"><span class="tag" style="background:${(over?cssVar('--bad'):cssVar('--ok'))}22;color:${over?cssVar('--bad'):cssVar('--ok')}">${over?'Rupture':'OK'}</span><br><b>${over?'M appliqué > M résistant':'M appliqué ≤ M résistant'}</b><div class="desc">${over?'La section cède : ajoute des aciers ou réduis la charge.':'La section encaisse le moment appliqué.'}</div></div>`;
     html+=`<div><h4>Pas à pas</h4>${stepx('Moment résistant','M_R = As·fyd·(d−0.4x)','M_R = '+fmt(S.MR||MR,0)+' kN·m')}${stepx('Moment appliqué','M = f(P, position)','M = '+fmt(Mapp,0)+' kN·m')}</div>`;
-    $("side").innerHTML=html;drawDiagramsFromViz();}
+    $("side").innerHTML=html;
+    if(_viz)_viz.dim={rows:[['M appliqué',fmt(Mapp,0),'kN·m'],['M résistant',fmt(S.MR||MR,0),'kN·m'],['Axe neutre x',fmt(S.x||0,0),'mm']],
+      verdict:over?{state:'bad',tag:'Rupture',text:'M appliqué > M résistant — ajoute des aciers ou réduis la charge'}:{state:'ok',tag:'Vérifié',text:'M appliqué ≤ M résistant — section béton armé OK'},
+      note:'Dimensionnement béton armé : équilibre béton comprimé / aciers tendus (pivot A ou B).'};
+    syncPhases();}
   rebuild();
  }
 };
 
 /* ---------- 4. POTEAU (flambement) ---------- */
-AT.poteau={id:'poteau',code:'CM',family:'Structures',name:'Poteau comprimé',sub:'Tire la charge vers le bas en tête : à la charge critique d’Euler, le poteau flambe sous tes yeux.',
+AT.poteau={id:'poteau',code:'CM',family:'Poteaux',name:'Poteau comprimé',sub:'Tire la charge vers le bas en tête : à la charge critique d’Euler, le poteau flambe sous tes yeux.',
  manip:'tire l’effort N, change les appuis',read:'charge critique, élancement',ready:true,
  stepIds:['modele','section','charge','flambement'],
  stepLabels:{modele:'Modèle',section:'Section',charge:'Chargement',flambement:'Flambement'},
@@ -537,7 +551,7 @@ AT.pont={id:'pont',code:'PON',family:'Ouvrages d’art',name:'Travée de pont',s
     let html=ro([['M mi-travée',fmt(M/1e3,0),'kN·m'],['M max',fmt(st.P*L/4/1e3,0),'kN·m'],['Position',fmt(st.a,1),'m'],['Convoi P',fmt(st.P/1e3,0),'kN']]);
     html+=`<div><h4>Pas à pas</h4>${stepx('Ligne d’influence','ordonnée max = L/4 à mi-travée','pic quand le convoi est centré')}${stepx('Moment','M = R_A·L/2 − ...','M actuel '+fmt(M/1e3,0)+' kN·m')}</div>`;
     html+=`<div class="note">La ligne (turquoise) donne l’effet à mi-travée selon la position. La bille suit le convoi.</div>`;
-    $("side").innerHTML=html;drawDiagramsFromViz();}
+    $("side").innerHTML=html;syncPhases();}
   rebuild();
  }
 };
@@ -636,7 +650,7 @@ const DATA={
   e3:[['Résonance','Quand l’excitation rencontre T'],['Amortissement','Effet de ζ'],['Masse/raideur','Ce qui change T']],
   quiz:{q:'Augmenter la masse d’un oscillateur, à raideur constante :',opts:['Raccourcit la période','Allonge la période','Ne change pas la période'],a:1}},
 };
-const FAMILIES=[['Fondations','semelle'],['Structure','poteau','poutre','section'],['Charpente','treillis'],['Ouvrages d’art','pont'],['Réseaux','ecoulement'],['Dynamique','oscillateur']];
+const FAMILIES=[['Fondations','semelle'],['Poutres','poutre','treillis','section'],['Poteaux','poteau'],['Ouvrages d’art','pont'],['Réseaux','ecoulement'],['Dynamique','oscillateur']];
 
 /* ================= ATLAS — one full ouvrage in 3D ================= */
 let _atlas=null;
@@ -744,7 +758,7 @@ function etudeOpen(id,from){
 function runEtude(){
   const inputs=curAt.prepare(curP);const q=curAt.questions[curAt.questions.length-1];const ctx=runPipeline(curAt,[...q.tasks],inputs);
   teardownViz();document.querySelectorAll("#etude .cmaplegend").forEach(e=>e.remove());$("vtoolbar").innerHTML="";$("vhint").textContent="";
-  const dg=$("diagrams");if(dg)dg.hidden=true;   // masqué par défaut ; les ateliers poutre affichent
+  const dg=$("diagrams");if(dg)dg.hidden=true;const dm=$("dim");if(dm)dm.hidden=true; // masqués par défaut
   curAt.result(ctx,inputs);
   if(_viz&&_viz.camera){_viz.homePos=_viz.camera.position.clone();if(_viz.controls)_viz.homeTarget=_viz.controls.target.clone();}
 }
@@ -820,6 +834,16 @@ function renderDiagrams(sol,L){
   host.innerHTML=svg;wrap.hidden=false;
 }
 function drawDiagramsFromViz(){ if(_viz&&_viz.sol&&_viz.sol.L)renderDiagrams(_viz.sol,_viz.sol.L); else {const w=$("diagrams");if(w)w.hidden=true;} }
+// Phase 2 — dimensionnement : {rows:[[k,v,u]], verdict:{state:'ok'|'bad'|'info',tag,text}, note}
+function renderDim(dim){
+  const wrap=$("dim"),body=$("dimbody");if(!wrap||!body)return;
+  if(!dim){wrap.hidden=true;return;}
+  const rows=(dim.rows||[]).map(r=>`<div class="dr"><div class="k">${r[0]}</div><div class="v">${r[1]}<span class="u"> ${r[2]||''}</span></div></div>`).join('');
+  const v=dim.verdict||{state:'info',tag:'—',text:''};
+  body.innerHTML=`<div class="dimrows">${rows}</div><div class="verdict ${v.state}"><span class="tag">${v.tag}</span><span>${v.text}</span></div>${dim.note?`<div class="dimnote">${dim.note}</div>`:''}`;
+  wrap.hidden=false;
+}
+function syncPhases(){ drawDiagramsFromViz(); renderDim(_viz&&_viz.dim); }
 
 /* ================= Lot 3 — import / export des calculs ================= */
 function exportCalc(){
