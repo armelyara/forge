@@ -1,0 +1,10 @@
+{
+  "name": "forge",
+  "version": "1.0.0",
+  "description": "Forge — labo virtuel de génie civil / RDM (atlas 3D + ateliers manipulables, PWA).",
+  "private": true,
+  "scripts": {
+    "test": "node --test test/solvers.test.js"
+  },
+  "license": "UNLICENSED"
+}
