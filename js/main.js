@@ -197,8 +197,8 @@ function goHome(){teardownViz();$("labwrap").classList.add("hidden");$("homeApp"
 let etudeFrom='catalog';
 const LAB_SECTIONS=["catalog","atlas","etude","parcours","tarifs","apropos","compose","result"];
 function hideLabSections(){LAB_SECTIONS.forEach(s=>{const el=$(s);if(el)el.classList.add("hidden");});}
-function showInfoPage(id,label){enterLab();teardownViz();teardownAtlas();hideLabSections();const t=$(id);if(t)t.classList.remove("hidden");$("labDom").textContent=label;window.scrollTo(0,0);
-  $(id).querySelectorAll('[data-el]').forEach(c=>c.onclick=()=>etudeOpen(c.dataset.el,'catalog'));}
+function showInfoPage(id,label){const t=$(id);if(!t)return;enterLab();teardownViz();teardownAtlas();hideLabSections();t.classList.remove("hidden");$("labDom").textContent=label;window.scrollTo(0,0);
+  t.querySelectorAll('[data-el]').forEach(c=>c.onclick=()=>etudeOpen(c.dataset.el,'catalog'));}
 function openParcours(){showInfoPage("parcours","Parcours");}
 function openTarifs(){showInfoPage("tarifs","Tarifs");}
 function openApropos(){showInfoPage("apropos","À propos");}

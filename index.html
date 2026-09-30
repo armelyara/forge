@@ -33,7 +33,8 @@
           style="display:flex;flex-direction:column;line-height:1"><b>Forge</b><span class="dom"
             id="labDom">Atelier</span></span></a>
       <div class="tools"><button data-home>← Accueil</button><button data-atlas>Atlas</button><button
-          data-catalog>Ateliers</button><button data-lang2></button><button data-theme2></button></div>
+          data-catalog>Ateliers</button><button data-parcours>Parcours</button><button data-tarifs>Tarifs</button><button
+          data-apropos>À propos</button><button data-lang2></button><button data-theme2></button></div>
     </nav>
 
     <section id="catalog" class="hidden">
@@ -98,6 +99,112 @@
         <h2 class="e-title">Continuer à apprendre</h2>
       </div>
       <div class="e3grid" id="etape3"></div>
+    </section>
+
+    <section id="parcours" class="hidden">
+      <div class="back" data-home>← Forge</div>
+      <h1 class="panel-title">Les parcours</h1>
+      <p class="panel-sub">Des progressions guidées : chaque parcours enchaîne des ateliers dans l'ordre où on les apprend, des efforts jusqu'au dimensionnement.</p>
+      <div class="trackgrid">
+        <button class="trackcard" data-el="poutre">
+          <div class="tk-top"><span class="tk-lvl">Niveau 1 · Bases</span><span class="tk-dur">~40 min</span></div>
+          <h3>Bases RDM</h3>
+          <p>Comprendre les efforts et la flexion : réactions, effort tranchant, moment, déformée.</p>
+          <div class="tk-steps"><span>Poutre</span><span>Treillis</span><span>Section</span></div>
+        </button>
+        <button class="trackcard" data-el="poteau">
+          <div class="tk-top"><span class="tk-lvl">Niveau 2 · Descente de charges</span><span class="tk-dur">~45 min</span></div>
+          <h3>Structures &amp; fondations</h3>
+          <p>Suivre la charge du haut vers le sol : compression, flambement, contrainte admissible.</p>
+          <div class="tk-steps"><span>Poteau</span><span>Semelle</span><span>Section</span></div>
+        </button>
+        <button class="trackcard" data-el="pont">
+          <div class="tk-top"><span class="tk-lvl">Niveau 2 · Ouvrages</span><span class="tk-dur">~30 min</span></div>
+          <h3>Ouvrages &amp; réseaux</h3>
+          <p>Franchir et transporter : ligne d'influence d'un tablier, pertes de charge d'une conduite.</p>
+          <div class="tk-steps"><span>Pont</span><span>Écoulement</span></div>
+        </button>
+        <button class="trackcard" data-el="oscillateur">
+          <div class="tk-top"><span class="tk-lvl">Niveau 3 · Dynamique</span><span class="tk-dur">~20 min</span></div>
+          <h3>Dynamique des structures</h3>
+          <p>Période propre, amortissement, résonance : la structure qui vibre puis se calme.</p>
+          <div class="tk-steps"><span>Oscillateur</span></div>
+        </button>
+      </div>
+    </section>
+
+    <section id="tarifs" class="hidden">
+      <div class="back" data-home>← Forge</div>
+      <h1 class="panel-title">Tarifs</h1>
+      <p class="panel-sub">Forge est né pour les étudiants. L'accès personnel est gratuit ; les établissements ont des besoins de suivi et de déploiement.</p>
+      <div class="pricegrid">
+        <div class="pricecard feat">
+          <div class="pc-name">Étudiant</div>
+          <div class="pc-price">Gratuit</div>
+          <div class="pc-sub">Pour apprendre, seul.</div>
+          <ul class="pc-list">
+            <li>Atlas 3D de l'ouvrage complet</li>
+            <li>Les 8 ateliers manipulables</li>
+            <li>Diagrammes d'efforts &amp; dimensionnement</li>
+            <li>Import / export des calculs</li>
+            <li>Installable, fonctionne hors-ligne (PWA)</li>
+          </ul>
+          <button class="pc-cta" data-atlas>Commencer</button>
+        </div>
+        <div class="pricecard">
+          <div class="pc-name">Classe</div>
+          <div class="pc-price">Sur devis</div>
+          <div class="pc-sub">Pour un enseignant et ses élèves.</div>
+          <ul class="pc-list">
+            <li>Tout de l'offre Étudiant</li>
+            <li>Comptes élèves</li>
+            <li>Parcours guidés &amp; suivi</li>
+            <li>Support prioritaire</li>
+          </ul>
+          <a class="pc-cta ghost" href="mailto:armelyara@thedayinfo.com?subject=Forge%20-%20offre%20Classe">Nous contacter</a>
+        </div>
+        <div class="pricecard">
+          <div class="pc-name">Établissement</div>
+          <div class="pc-price">Sur devis</div>
+          <div class="pc-sub">Pour une école ou une université.</div>
+          <ul class="pc-list">
+            <li>Tout de l'offre Classe</li>
+            <li>Déploiement &amp; intégration</li>
+            <li>Ateliers &amp; contenus sur mesure</li>
+            <li>Formation des enseignants</li>
+          </ul>
+          <a class="pc-cta ghost" href="mailto:armelyara@thedayinfo.com?subject=Forge%20-%20offre%20Etablissement">Nous contacter</a>
+        </div>
+      </div>
+      <p class="note">Tarifs en cours de définition — l'accès étudiant restera gratuit.</p>
+    </section>
+
+    <section id="apropos" class="hidden">
+      <div class="back" data-home>← Forge</div>
+      <h1 class="panel-title">À propos</h1>
+      <p class="panel-sub">Forge est un laboratoire virtuel de génie civil et de résistance des matériaux. Le principe : on manipule, on ne regarde pas.</p>
+      <div class="aboutgrid">
+        <div class="aboutblock">
+          <div class="ab-k">La démarche</div>
+          <p>Chaque notion se saisit à la main. On déplace une charge, on change un matériau, et tout recalcule en direct : réactions, efforts, contraintes, déformée. L'étudiant voit la cause et l'effet, au lieu de subir une formule.</p>
+        </div>
+        <div class="aboutblock">
+          <div class="ab-k">Deux temps, comme en cours</div>
+          <p>Chaque étude suit le même fil que le génie civil réel : d'abord la <b>statique et la RDM</b> donnent les efforts, ensuite on <b>dimensionne</b> selon le matériau — acier, bois ou béton armé.</p>
+        </div>
+        <div class="aboutblock">
+          <div class="ab-k">Un seul ouvrage</div>
+          <p>L'atlas réunit fondations, poteaux, poutres, charpente, pont, réseaux et château d'eau dans une même scène 3D. On situe chaque élément dans l'ouvrage, puis on clique pour l'étudier.</p>
+        </div>
+        <div class="aboutblock">
+          <div class="ab-k">La technique</div>
+          <p>Application web, 100 % dans le navigateur, rendu 3D temps réel. Installable sur téléphone et utilisable hors-ligne. Les calculs sont indicatifs, à valider par la caution génie civil.</p>
+        </div>
+      </div>
+      <div class="aboutcta">
+        <span>Une question, une école, une idée d'atelier ?</span>
+        <a class="pc-cta" href="mailto:armelyara@thedayinfo.com?subject=Forge">Écrire à l'équipe</a>
+      </div>
     </section>
 
     <div class="labfoot"><span id="labFoot">Forge · Atelier de structures<a href="https://thedayinfo.com">©
