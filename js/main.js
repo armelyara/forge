@@ -2,7 +2,7 @@
 const state={lang:'fr',theme:'dark',layer:0};
 const DICT={
  fr:{
-  nav:{ateliers:'Ateliers',atlas:'Atlas',parcours:'Parcours',pricing:'Tarifs'},
+  nav:{ateliers:'Ateliers',atlas:'Atlas',parcours:'Parcours',pricing:'Tarifs',apropos:'À propos'},
   heroKicker:'Forge',
   heroTitleA:'Apprendre la structure', heroTitleB:'en la chargeant.',
   heroSub:'Douze domaines modélisés à partir de vraies structures, une leçon écrite et un calcul interactif sur chacun, et une file de révision qui retient vos erreurs. Calé sur les programmes de licence, de prépa intégrée et de BTS.',
@@ -35,7 +35,7 @@ const DICT={
   footNote:'Forge — atelier de structures en ligne.', tag:'Génie civil'
  },
  en:{
-  nav:{ateliers:'Workshops',atlas:'Atlas',parcours:'Tracks',pricing:'Pricing'},
+  nav:{ateliers:'Workshops',atlas:'Atlas',parcours:'Tracks',pricing:'Pricing',apropos:'About'},
   heroKicker:'Forge',
   heroTitleA:'Learn a structure', heroTitleB:'by loading it.',
   heroSub:'Twelve fields modelled from real structures, one written lesson and one interactive calculation on each, and a review queue that remembers your mistakes. Aligned with the degree, engineering-school and technician programmes.',
@@ -82,8 +82,9 @@ function homeHTML(t){
    <div style="display:flex;align-items:center;gap:clamp(14px,2.4vw,30px);font-family:'IBM Plex Mono',monospace;font-size:12.5px;letter-spacing:.04em;">
      <a data-atlas style="color:var(--muted);">${t.nav.atlas}</a>
      <a data-atelier style="color:var(--muted);">${t.nav.ateliers}</a>
-     <a data-scroll="method" style="color:var(--muted);">${t.nav.parcours}</a>
-     <a data-scroll="end" style="color:var(--muted);">${t.nav.pricing}</a>
+     <a data-parcours style="color:var(--muted);">${t.nav.parcours}</a>
+     <a data-tarifs style="color:var(--muted);">${t.nav.pricing}</a>
+     <a data-apropos style="color:var(--muted);">${t.nav.apropos}</a>
      <button data-lang style="cursor:pointer;background:var(--bg3);border:none;color:var(--ink);font-family:inherit;font-size:12px;padding:5px 11px;border-radius:2px;">${state.lang==='fr'?'EN':'FR'}</button>
      <button data-theme-btn style="cursor:pointer;background:var(--bg3);border:none;color:var(--ink);font-family:inherit;font-size:12px;padding:5px 11px;border-radius:2px;">${state.theme==='dark'?(state.lang==='fr'?'Clair':'Light'):(state.lang==='fr'?'Sombre':'Dark')}</button>
    </div>
@@ -173,6 +174,9 @@ function renderHome(){
  document.querySelectorAll('#homeApp [data-go="top"]').forEach(a=>a.onclick=()=>window.scrollTo({top:0,behavior:'smooth'}));
  document.querySelectorAll('#homeApp [data-atelier]').forEach(a=>a.onclick=openCatalog);
  document.querySelectorAll('#homeApp [data-atlas]').forEach(a=>a.onclick=openAtlas);
+ document.querySelectorAll('#homeApp [data-parcours]').forEach(a=>a.onclick=openParcours);
+ document.querySelectorAll('#homeApp [data-tarifs]').forEach(a=>a.onclick=openTarifs);
+ document.querySelectorAll('#homeApp [data-apropos]').forEach(a=>a.onclick=openApropos);
  const lb=document.querySelector('#homeApp [data-lang]'); if(lb) lb.onclick=()=>{state.lang=state.lang==='fr'?'en':'fr';renderHome();};
  const tb=document.querySelector('#homeApp [data-theme-btn]'); if(tb) tb.onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';applyTheme();renderHome();};
  document.querySelectorAll('#homeApp [data-layer]').forEach(btn=>btn.onclick=()=>{state.layer=+btn.dataset.layer;const cb=document.getElementById('cutbeam');if(cb)cb.setAttribute('active-layer',state.layer);document.querySelectorAll('#homeApp [data-layer]').forEach(b=>{const on=+b.dataset.layer===state.layer;b.querySelector('.lbar').style.opacity=on?1:0;b.querySelector('.ltitle').style.opacity=on?1:.55;});});
@@ -191,7 +195,14 @@ function disposeObject3D(root){if(!root)return;root.traverse(n=>{if(n.geometry)n
 function enterLab(){$("homeApp").classList.add("hidden");$("labwrap").classList.remove("hidden");window.scrollTo(0,0);syncLabTools();}
 function goHome(){teardownViz();$("labwrap").classList.add("hidden");$("homeApp").classList.remove("hidden");window.scrollTo(0,0);}
 let etudeFrom='catalog';
-function openCatalog(){enterLab();teardownViz();teardownAtlas();["atlas","compose","result","etude"].forEach(s=>{const el=$(s);if(el)el.classList.add("hidden");});$("catalog").classList.remove("hidden");buildCatalog();$("labDom").textContent="Ateliers";window.scrollTo(0,0);}
+const LAB_SECTIONS=["catalog","atlas","etude","parcours","tarifs","apropos","compose","result"];
+function hideLabSections(){LAB_SECTIONS.forEach(s=>{const el=$(s);if(el)el.classList.add("hidden");});}
+function showInfoPage(id,label){enterLab();teardownViz();teardownAtlas();hideLabSections();const t=$(id);if(t)t.classList.remove("hidden");$("labDom").textContent=label;window.scrollTo(0,0);
+  $(id).querySelectorAll('[data-el]').forEach(c=>c.onclick=()=>etudeOpen(c.dataset.el,'catalog'));}
+function openParcours(){showInfoPage("parcours","Parcours");}
+function openTarifs(){showInfoPage("tarifs","Tarifs");}
+function openApropos(){showInfoPage("apropos","À propos");}
+function openCatalog(){enterLab();teardownViz();teardownAtlas();hideLabSections();$("catalog").classList.remove("hidden");buildCatalog();$("labDom").textContent="Ateliers";window.scrollTo(0,0);}
 function buildCatalog(){
   $("catGrid").innerHTML=Object.values(AT).map(a=>`<button class="catcard" data-el="${a.id}">
     <div class="top"><span class="code">${a.code}</span><span class="fam">${a.family}</span></div>
@@ -203,6 +214,9 @@ function syncLabTools(){const lb=$("data-lang2")||document.querySelector('[data-
 document.querySelectorAll('[data-home]').forEach(b=>b.onclick=goHome);
 document.querySelectorAll('[data-catalog]').forEach(b=>b.onclick=openCatalog);
 document.querySelectorAll('[data-atlas]').forEach(b=>b.onclick=openAtlas);
+document.querySelectorAll('[data-parcours]').forEach(b=>b.onclick=openParcours);
+document.querySelectorAll('[data-tarifs]').forEach(b=>b.onclick=openTarifs);
+document.querySelectorAll('[data-apropos]').forEach(b=>b.onclick=openApropos);
 $("etudeBack").onclick=()=>{etudeFrom==='atlas'?openAtlas():openCatalog();};
 document.querySelector('[data-lang2]').onclick=()=>{state.lang=state.lang==='fr'?'en':'fr';renderHome();syncLabTools();};
 document.querySelector('[data-theme2]').onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';applyTheme();renderHome();syncLabTools();if(_viz&&_viz.recolor)_viz.recolor();};
@@ -699,7 +713,7 @@ function buildAtlas(){
   cv.addEventListener('pointerdown',e=>dn=[e.clientX,e.clientY]);
   cv.addEventListener('pointerup',e=>{if(!dn)return;const mv=Math.hypot(e.clientX-dn[0],e.clientY-dn[1]);dn=null;if(mv>6)return;const r=cv.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height*2-1));ray.setFromCamera(ndc,camera);const hits=ray.intersectObjects(Object.values(groups),true);if(hits.length){let o=hits[0].object;while(o&&!(o.userData&&o.userData.at))o=o.parent;if(o)etudeOpen(o.userData.at,'atlas');}});
 }
-function openAtlas(){enterLab();teardownViz();["catalog","compose","result","etude"].forEach(s=>{const el=$(s);if(el)el.classList.add("hidden");});$("atlas").classList.remove("hidden");$("labDom").textContent="Atlas";window.scrollTo(0,0);
+function openAtlas(){enterLab();teardownViz();["catalog","compose","result","etude","parcours","tarifs","apropos"].forEach(s=>{const el=$(s);if(el)el.classList.add("hidden");});$("atlas").classList.remove("hidden");$("labDom").textContent="Atlas";window.scrollTo(0,0);
   // panel
   $("sysList").innerHTML=FAMILIES.map(f=>`<div class="sysgrp"><div class="sysrow" data-fam="${f[0]}"><span class="nm"><span class="dot" style="background:var(--accent)"></span>${f[0]}</span><span style="display:flex;align-items:center;gap:8px"><span class="cnt">${f.length-1}</span><span class="sw on" data-fsw="${f[0]}"></span></span></div>${f.slice(1).map(id=>`<div class="sysrow" data-el="${id}" style="padding-left:18px"><span class="nm"><span class="dot" style="background:var(--muted)"></span>${AT[id]?AT[id].name:id}</span><span class="sw on" data-elsw="${id}"></span></div>`).join('')}</div>`).join('');
   buildAtlas();
@@ -725,7 +739,7 @@ function fmtParam(p,v){return p.type==='select'?(p.options.find(o=>o.v==v)||{}).
 function etudeOpen(id,from){
   if(from)etudeFrom=from;$("etudeBack").textContent=etudeFrom==='atlas'?'← Atlas':'← Ateliers';
   teardownAtlas();teardownViz();curAt=AT[id];curP=JSON.parse(JSON.stringify(curAt.cases[0].set));
-  enterLab();["atlas","catalog","compose","result"].forEach(s=>{const el=$(s);if(el)el.classList.add("hidden");});$("etude").classList.remove("hidden");$("labDom").textContent=curAt.code;window.scrollTo(0,0);
+  enterLab();["atlas","catalog","compose","result","parcours","tarifs","apropos"].forEach(s=>{const el=$(s);if(el)el.classList.add("hidden");});$("etude").classList.remove("hidden");$("labDom").textContent=curAt.code;window.scrollTo(0,0);
   const d=DATA[id]||{};buildCarousel();
   // infopanel
   $("infopanel").innerHTML=`<div class="ip-badge">${curAt.family}</div><h2 class="ip-name">${curAt.name}</h2><div class="ip-tag">${d.tag||curAt.sub}</div>
