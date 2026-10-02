@@ -164,9 +164,9 @@
       const labelEls = labels.map(L => {
         const el = document.createElement('div');
         el.style.cssText = 'position:absolute;transform:translate(-50%,-120%);pointer-events:none;z-index:3;white-space:nowrap;font-family:"IBM Plex Mono",monospace;transition:opacity .2s;';
-        el.innerHTML = `<span style="display:block;font-size:11px;font-weight:500;color:#eef2f4;letter-spacing:.02em;">${L.t}</span>` +
-          (L.s ? `<span style="display:block;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:#9fb0b9;margin-top:1px;">${L.s}</span>` : '') +
-          `<span style="display:block;width:1px;height:14px;margin:3px auto 0;background:#d3702f;"></span>`;
+        el.innerHTML = `<span style="display:block;font-size:11px;font-weight:500;color:var(--ink);letter-spacing:.02em;">${L.t}</span>` +
+          (L.s ? `<span style="display:block;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:1px;">${L.s}</span>` : '') +
+          `<span style="display:block;width:1px;height:14px;margin:3px auto 0;background:var(--accent2);"></span>`;
         this.appendChild(el); return { el, p: new THREE.Vector3(...L.p) };
       });
 
@@ -284,7 +284,7 @@
           row('Moment max', Mmax.toFixed(1), 'kN·m', cAccent) + row('Charge · position', P + ' kN · ' + a.toFixed(1) + ' m', '');
         pv.textContent = P + ' kN';
       }
-      const row = (k, v, u, c) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:5px 0;"><span style="color:#9fb0b9;">${k}</span><span style="color:${c || '#eef2f4'};">${v}<span style="color:#6f828c;"> ${u}</span></span></div>`;
+      const row = (k, v, u, c) => `<div style="display:flex;justify-content:space-between;gap:14px;padding:5px 0;"><span style="color:var(--muted);">${k}</span><span style="color:${c || 'var(--ink)'};">${v}<span style="color:var(--faint);"> ${u}</span></span></div>`;
 
       const controls = new OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true; controls.dampingFactor = 0.08; controls.enablePan = false;
@@ -313,13 +313,13 @@
       this.appendChild(read);
       const hint = document.createElement('div');
       hint.textContent = '↔ glissez la charge · faites pivoter la scène';
-      hint.style.cssText = 'position:absolute;top:14px;right:16px;z-index:3;pointer-events:none;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#6f828c;';
+      hint.style.cssText = 'position:absolute;top:14px;right:16px;z-index:3;pointer-events:none;font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);';
       this.appendChild(hint);
       const bar = document.createElement('div');
-      bar.style.cssText = 'position:absolute;bottom:14px;left:16px;right:16px;z-index:3;display:flex;align-items:center;gap:12px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:#9fb0b9;';
-      const pv = document.createElement('span'); pv.style.cssText = 'color:#d3702f;min-width:56px;';
+      bar.style.cssText = 'position:absolute;bottom:14px;left:16px;right:16px;z-index:3;display:flex;align-items:center;gap:12px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted);';
+      const pv = document.createElement('span'); pv.style.cssText = 'color:var(--accent2);min-width:56px;';
       const slider = document.createElement('input'); slider.type = 'range'; slider.min = '5'; slider.max = '40'; slider.step = '1'; slider.value = '24';
-      slider.style.cssText = 'flex:1;accent-color:#d3702f;cursor:pointer;'; slider.addEventListener('input', () => { state.P = +slider.value; update(); });
+      slider.style.cssText = 'flex:1;accent-color:var(--accent2);cursor:pointer;'; slider.addEventListener('input', () => { state.P = +slider.value; update(); });
       const lbl = document.createElement('span'); lbl.textContent = 'INTENSITÉ'; lbl.style.letterSpacing = '.08em';
       bar.append(lbl, slider, pv); this.appendChild(bar);
 

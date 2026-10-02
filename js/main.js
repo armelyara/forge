@@ -85,8 +85,7 @@ function homeHTML(t){
      <a data-parcours style="color:var(--muted);">${t.nav.parcours}</a>
      <a data-tarifs style="color:var(--muted);">${t.nav.pricing}</a>
      <a data-apropos style="color:var(--muted);">${t.nav.apropos}</a>
-     <button data-lang style="cursor:pointer;background:var(--bg3);border:none;color:var(--ink);font-family:inherit;font-size:12px;padding:5px 11px;border-radius:2px;">${state.lang==='fr'?'EN':'FR'}</button>
-     <button data-theme-btn style="cursor:pointer;background:var(--bg3);border:none;color:var(--ink);font-family:inherit;font-size:12px;padding:5px 11px;border-radius:2px;">${state.theme==='dark'?(state.lang==='fr'?'Clair':'Light'):(state.lang==='fr'?'Sombre':'Dark')}</button>
+     <button data-theme-btn style="cursor:pointer;background:var(--bg3);border:none;color:var(--ink);font-family:inherit;font-size:12px;padding:5px 11px;border-radius:2px;">${state.theme==='dark'?'Clair':'Sombre'}</button>
    </div>
  </nav>
 
@@ -177,7 +176,6 @@ function renderHome(){
  document.querySelectorAll('#homeApp [data-parcours]').forEach(a=>a.onclick=openParcours);
  document.querySelectorAll('#homeApp [data-tarifs]').forEach(a=>a.onclick=openTarifs);
  document.querySelectorAll('#homeApp [data-apropos]').forEach(a=>a.onclick=openApropos);
- const lb=document.querySelector('#homeApp [data-lang]'); if(lb) lb.onclick=()=>{state.lang=state.lang==='fr'?'en':'fr';renderHome();};
  const tb=document.querySelector('#homeApp [data-theme-btn]'); if(tb) tb.onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';applyTheme();renderHome();};
  document.querySelectorAll('#homeApp [data-layer]').forEach(btn=>btn.onclick=()=>{state.layer=+btn.dataset.layer;const cb=document.getElementById('cutbeam');if(cb)cb.setAttribute('active-layer',state.layer);document.querySelectorAll('#homeApp [data-layer]').forEach(b=>{const on=+b.dataset.layer===state.layer;b.querySelector('.lbar').style.opacity=on?1:0;b.querySelector('.ltitle').style.opacity=on?1:.55;});});
 }
@@ -210,7 +208,7 @@ function buildCatalog(){
     <div class="man"><span><b>Manipule</b>${a.manip}</span><span><b>Tu lis</b>${a.read}</span></div></button>`).join("");
   $("catGrid").querySelectorAll('[data-el]').forEach(c=>c.onclick=()=>etudeOpen(c.dataset.el,'catalog'));
 }
-function syncLabTools(){const lb=$("data-lang2")||document.querySelector('[data-lang2]'),tb=document.querySelector('[data-theme2]');if(lb)lb.textContent=state.lang==='fr'?'EN':'FR';if(tb)tb.textContent=state.theme==='dark'?(state.lang==='fr'?'Clair':'Light'):(state.lang==='fr'?'Sombre':'Dark');}
+function syncLabTools(){const tb=document.querySelector('[data-theme2]');if(tb)tb.textContent=state.theme==='dark'?'Clair':'Sombre';}
 document.querySelectorAll('[data-home]').forEach(b=>b.onclick=goHome);
 document.querySelectorAll('[data-catalog]').forEach(b=>b.onclick=openCatalog);
 document.querySelectorAll('[data-atlas]').forEach(b=>b.onclick=openAtlas);
@@ -218,7 +216,6 @@ document.querySelectorAll('[data-parcours]').forEach(b=>b.onclick=openParcours);
 document.querySelectorAll('[data-tarifs]').forEach(b=>b.onclick=openTarifs);
 document.querySelectorAll('[data-apropos]').forEach(b=>b.onclick=openApropos);
 $("etudeBack").onclick=()=>{etudeFrom==='atlas'?openAtlas():openCatalog();};
-document.querySelector('[data-lang2]').onclick=()=>{state.lang=state.lang==='fr'?'en':'fr';renderHome();syncLabTools();};
 document.querySelector('[data-theme2]').onclick=()=>{state.theme=state.theme==='dark'?'light':'dark';applyTheme();renderHome();syncLabTools();if(_viz&&_viz.recolor)_viz.recolor();};
 
 /* ================= chassis engine ================= */
