@@ -1,6 +1,4 @@
-/* Forge — service worker (PWA hors-ligne)
-   App shell précaché, cache-first pour le même origine, stale-while-revalidate
-   pour les polices Google. Bumper CACHE à chaque déploiement pour rafraîchir. */
+/* Forge — service worker */
 const CACHE = 'forge-v5';
 const SHELL = [
   './',
