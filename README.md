@@ -15,8 +15,8 @@ Three.js se charge depuis le CDN jsdelivr : connexion internet requise.
 ## Déployer sur GitHub Pages
 
 ```bash
-# 1. Crée un dépôt vide sur github.com (ex: forge), PUBLIC
-# 2. Dans ce dossier :
+# 1. Create a empty repo on github.com (ex: forge), PUBLIC
+# 2. In this folder :
 git init
 git add .
 git commit -m "Forge — labo RDM"

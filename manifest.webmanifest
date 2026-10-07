@@ -1,5 +1,5 @@
 {
-  "name": "Forge — Atelier de structures",
+  "name": "Forge — Laboratoire web de Génie Civil",
   "short_name": "Forge",
   "description": "Labo virtuel de génie civil / RDM : atlas 3D d'un ouvrage et ateliers manipulables.",
   "start_url": ".",
@@ -10,8 +10,23 @@
   "theme_color": "#0f1417",
   "lang": "fr",
   "icons": [
-    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }
