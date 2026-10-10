@@ -1,4 +1,4 @@
-# Forge — labo virtuel de génie civil / RDM
+# Forge — labo virtuel de génie civil
 
 Atlas d'un ouvrage complet en 3D + ateliers manipulables (poutre, treillis, section BA, poteau, semelle, écoulement, pont, oscillateur).
 
